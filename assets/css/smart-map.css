@@ -1,0 +1,454 @@
+/* Smart Map Styles */
+
+:root {
+    --map-bg: #1a1a1a;
+    --plot-available: #28a745;
+    --plot-reserved: #ffc107;
+    --plot-sold: #dc3545;
+    --road-color: #333;
+    --panel-bg: #1e1e1e;
+    --gold: #D4AF37;
+    --text-white: #ffffff;
+    --text-muted: #b0b0b0;
+}
+
+body {
+    background-color: var(--dark-bg);
+    overflow-x: hidden;
+    /* Main page no horizontal scroll */
+}
+
+.smart-map-section {
+    padding-top: 80px;
+    /* Navbar offset */
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background: var(--map-bg);
+}
+
+/* Map Wrapper */
+.map-container-wrapper {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+}
+
+/* Map Viewport (Scrollable Area) */
+.map-viewport {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    position: relative;
+    cursor: grab;
+    /* Hide Scrollbars */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.map-viewport::-webkit-scrollbar {
+    display: none;
+}
+
+.map-viewport:active {
+    cursor: grabbing;
+}
+
+/* Map Grid (Actual Content) */
+.map-grid {
+    /* Large fixed size for scrolling/pan */
+    width: 2000px;
+    height: 1200px;
+    background-color: var(--map-bg);
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    position: relative;
+    transform-origin: center center;
+    transition: transform 0.3s ease;
+    padding: 100px;
+    /* Padding around blocks */
+}
+
+/* Blocks / Roads Layout */
+.block-section {
+    position: absolute;
+    display: grid;
+    gap: 10px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 2px solid rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+/* Plot Styling */
+.plot {
+    position: relative;
+    background-color: rgba(40, 167, 69, 0.2);
+    /* Def available */
+    border: 1px solid rgba(40, 167, 69, 0.5);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-white);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    user-select: none;
+}
+
+.plot span {
+    pointer-events: none;
+}
+
+.plot:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+    z-index: 10;
+    border-color: var(--gold);
+}
+
+/* Status Colors */
+.plot[data-status="available"] {
+    background-color: rgba(40, 167, 69, 0.2);
+    border-color: #28a745;
+}
+
+.plot[data-status="reserved"] {
+    background-color: rgba(255, 193, 7, 0.2);
+    border-color: #ffc107;
+    color: #ffd54f;
+}
+
+.plot[data-status="sold"] {
+    background-color: rgba(220, 53, 69, 0.2);
+    border-color: #dc3545;
+    color: #ffadb4;
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+
+/* Roads */
+.road-h {
+    position: absolute;
+    background: var(--road-color);
+    height: 40px;
+    width: 100%;
+    z-index: 0;
+    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.road-v {
+    position: absolute;
+    background: var(--road-color);
+    width: 40px;
+    height: 100%;
+    z-index: 0;
+    border-left: 1px dashed rgba(255, 255, 255, 0.1);
+    border-right: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+/* Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Modal Window */
+.plot-modal {
+    background: var(--panel-bg);
+    width: 90%;
+    max-width: 500px;
+    border: 1px solid var(--gold);
+    border-radius: 12px;
+    position: relative;
+    transform: scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-overlay.active .plot-modal {
+    transform: scale(1);
+}
+
+.close-modal {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: var(--text-white);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.2rem;
+    z-index: 10;
+    transition: background 0.2s;
+}
+
+.close-modal:hover {
+    background: var(--gold);
+    color: var(--map-bg);
+}
+
+/* Modal Content Styles */
+.modal-header {
+    padding: 25px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+    background: linear-gradient(to bottom, rgba(212, 175, 55, 0.1), transparent);
+}
+
+.modal-header h2 {
+    color: var(--gold);
+    font-family: var(--font-heading);
+    margin: 0 0 10px 0;
+    font-size: 2rem;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #fff;
+}
+
+.modal-body {
+    padding: 25px;
+}
+
+/* Info Grid */
+.detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.detail-item label {
+    display: block;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-bottom: 4px;
+}
+
+.detail-item span {
+    color: var(--text-white);
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* Price Box */
+.price-section {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 25px;
+}
+
+.price-section label {
+    display: block;
+    color: var(--gold);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+}
+
+.price-section .amount {
+    font-size: 2.2rem;
+    color: var(--text-white);
+    font-weight: 700;
+    font-family: var(--font-heading);
+}
+
+/* Installment Calculator */
+.calculator-section {
+    margin-bottom: 25px;
+}
+
+.calc-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+}
+
+.calc-row.highlight {
+    background: rgba(40, 167, 69, 0.1);
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid rgba(40, 167, 69, 0.3);
+    margin-top: 15px;
+}
+
+.duration-selector {
+    display: flex;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.duration-btn {
+    flex: 1;
+    padding: 8px;
+    background: transparent;
+    border: 1px solid var(--text-muted);
+    color: var(--text-muted);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+}
+
+.duration-btn.active,
+.duration-btn:hover {
+    background: var(--gold);
+    color: var(--map-bg);
+    border-color: var(--gold);
+    font-weight: 600;
+}
+
+/* WhatsApp Button */
+.btn-whatsapp {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 15px;
+    background: #25D366;
+    color: #fff;
+    border-radius: 8px;
+    border: none;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+    gap: 10px;
+}
+
+.btn-whatsapp:hover {
+    background: #128C7E;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(37, 211, 102, 0.4);
+}
+
+/* Controls */
+.map-controls {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 30px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 15px 25px;
+    border-radius: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    z-index: 100;
+}
+
+.legend {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--text-white);
+    font-size: 0.9rem;
+}
+
+.legend-item::before {
+    content: '';
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.legend-item.available::before {
+    background: var(--plot-available);
+}
+
+.legend-item.reserved::before {
+    background: var(--plot-reserved);
+}
+
+.legend-item.sold::before {
+    background: var(--plot-sold);
+}
+
+.zoom-controls button {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: var(--white);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    margin-left: 5px;
+    transition: background 0.2s;
+}
+
+.zoom-controls button:hover {
+    background: var(--gold);
+    color: var(--map-bg);
+}
+
+/* Responsive Mobile */
+@media (max-width: 768px) {
+    .plot-modal {
+        width: 100%;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
+        border: none;
+    }
+
+    .map-controls {
+        bottom: 20px;
+        width: 90%;
+        flex-direction: column;
+    }
+}
