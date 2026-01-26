@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Admin Panel</title>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="assets/css/admin.css">
+</head>
+
+<body class="dashboard-body">
+
+    <!-- Admin Navbar (Top Header) -->
+    <header class="top-header">
+        <div class="header-left">
+            <button id="sidebarToggle" class="sidebar-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <span class="admin-logo" style="color:var(--gold);">Admin Panel</span>
+        </div>
+
+        <div class="header-right">
+            <div class="admin-user-group">
+                <div class="avatar-small">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <span class="user-role-text">Super Admin</span>
+            </div>
+
+            <a href="#" class="btn-logout" id="topLogout">
+                <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
+            </a>
+        </div>
+    </header>
+
+    <div class="dashboard-layout" style="margin-top: 70px;">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="../index.html" class="logo">RYK <span>CITY</span></a>
+            </div>
+
+            <nav class="sidebar-menu">
+                <a href="admin-dashboard.html" class="menu-item active">
+                    <i class="fas fa-chart-line"></i> Dashboard
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fas fa-map-marked"></i> Manage Plots
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fas fa-users"></i> Users
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fas fa-money-check-alt"></i> Payments
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fas fa-cog"></i> Settings
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="#" class="menu-item" id="adminLogout">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- Content Area -->
+
+            <!-- Content Area -->
+            <div class="dashboard-content">
+
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span>Total Plots</span>
+                            <h3 id="statTotalPlots">0</h3>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-map"></i>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span>Sold Plots</span>
+                            <h3 id="statSoldPlots">0</h3>
+                        </div>
+                        <div class="stat-icon" style="color:#28a745; background:rgba(40,167,69,0.1)">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span>Available</span>
+                            <h3 id="statAvailable">0</h3>
+                        </div>
+                        <div class="stat-icon" style="color:#17a2b8; background:rgba(23,162,184,0.1)">
+                            <i class="fas fa-layer-group"></i>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span>Total Revenue</span>
+                            <h3 id="statRevenue">PKR 0</h3>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Plots Table -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3>Recent Inventory</h3>
+                        <a href="#" class="btn-add"><i class="fas fa-plus"></i> Add New Plot</a>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Ref ID</th>
+                                    <th>Plot No</th>
+                                    <th>Type</th>
+                                    <th>Price</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventoryTable">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="../shared/database.js"></script>
+    <script src="assets/js/admin-auth.js"></script>
+    <script>
+        // Sidebar Content Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            // Sidebar Toggle Logic
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.createElement('div');
+
+            // Create overlay for mobile
+            overlay.className = 'sidebar-overlay';
+            overlay.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.5); z-index: 99; display: none;
+                backdrop-filter: blur(2px);
+            `;
+            document.body.appendChild(overlay);
+
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('active');
+                    if (sidebar.classList.contains('active')) {
+                        overlay.style.display = 'block';
+                    } else {
+                        overlay.style.display = 'none';
+                    }
+                });
+            }
+
+            // Close sidebar when clicking overlay
+            overlay.addEventListener('click', () => {
+                sidebar.classList.remove('active');
+                overlay.style.display = 'none';
+            });
+
+            // Logout Logic for Top Button
+            const topLogout = document.getElementById('topLogout');
+            if (topLogout) {
+                topLogout.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (confirm('Are you sure you want to logout?')) {
+                        window.RYK_DB.AuthDB.logout(); // Will be handled by admin-auth check
+                        window.location.href = 'admin-login.html';
+                    }
+                });
+            }
+
+            // Load Admin Data
+            const stats = window.RYK_DB.PlotDB.getStats();
+
+            document.getElementById('statTotalPlots').innerText = stats.total;
+            document.getElementById('statSoldPlots').innerText = stats.sold;
+            document.getElementById('statAvailable').innerText = stats.available;
+
+            // Calc Revenue (Mock)
+            const payments = window.RYK_DB.PaymentDB.getAll();
+            const revenue = payments.filter(p => p.status === 'paid').reduce((a, b) => a + b.amount, 0);
+            const formatter = new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', maximumSignificantDigits: 3 });
+            document.getElementById('statRevenue').innerText = formatter.format(revenue);
+
+            // Populate Table
+            const plots = window.RYK_DB.PlotDB.getAll().slice(0, 5); // Last 5
+            const table = document.getElementById('inventoryTable');
+            table.innerHTML = '';
+
+            plots.forEach(plot => {
+                let statusColor = '#fff';
+                if (plot.status === 'available') statusColor = '#28a745';
+                if (plot.status === 'sold') statusColor = '#dc3545';
+                if (plot.status === 'reserved') statusColor = '#ffc107';
+
+                table.innerHTML += `
+                    <tr>
+                        <td>${plot.id}</td>
+                        <td><strong>${plot.plotNumber}</strong></td>
+                        <td style="text-transform:capitalize">${plot.type} (${plot.size.marla}M)</td>
+                        <td>${formatter.format(plot.pricing.totalPrice)}</td>
+                        <td><span style="color:${statusColor}; font-weight:bold; text-transform:uppercase; font-size:0.8rem;">${plot.status}</span></td>
+                        <td>
+                            <button class="action-btn"><i class="fas fa-edit"></i></button>
+                            <button class="action-btn"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        });
+    </script>
+</body>
+
+</html>
