@@ -14,7 +14,10 @@
     --font-heading: 'Playfair Display', serif;
     --font-body: 'Inter', sans-serif;
 }
-
+a[href^="tel"] {
+    color: inherit;
+    text-decoration: none;
+}
 * {
     margin: 0;
     padding: 0;
